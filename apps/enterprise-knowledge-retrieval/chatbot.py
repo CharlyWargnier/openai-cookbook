@@ -2,13 +2,14 @@ import os
 
 import openai
 import streamlit as st
-from assistant import (answer_question_hyde, answer_user_question, ask_gpt,
-                       initiate_agent)
-from database import get_redis_connection
 from langchain.agents import Tool
 from langchain.callbacks import StreamlitCallbackHandler
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from openai.error import InvalidRequestError
+
+from assistant import (answer_question_hyde, answer_user_question, ask_gpt,
+                       initiate_agent)
+from database import get_redis_connection
 
 # General settings
 PAGE_TITLE, PAGE_ICON = "Knowledge Retrieval Bot", "🤖"
@@ -17,12 +18,10 @@ st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
 st.title("🤖 Wiki Chatbot")
 st.subheader("Learn things - random things!")
 
-add_selectbox = st.sidebar.selectbox(
-    "What kind of search?", ("Standard vector search", "HyDE")
-)
-
 # Authenticate OpenAI
-if not openai.api_key and "OPENAI_API_KEY" not in os.environ:
+openai_key = st.sidebar.text_input("OpenAI API key", type="password")
+
+if openai_key is not None:
     warning = st.sidebar.info(
         """
     No API key provided. You can set your API key in code using 
@@ -30,9 +29,18 @@ if not openai.api_key and "OPENAI_API_KEY" not in os.environ:
     variable `OPENAI_API_KEY=<API-KEY>`. Else, please set your API key below.
     """
     )
-    openai.api_key = st.sidebar.text_input("OpenAI API key", type="password")
+    openai.api_key = openai_key
     if openai.api_key:
         warning.empty()
+    else:
+        st.stop()
+
+# Initialise database
+import enterprise_knowledge_retrieval
+
+add_selectbox = st.sidebar.selectbox(
+    "What kind of search?", ("Standard vector search", "HyDE")
+)
 
 msgs = StreamlitChatMessageHistory()
 token_count = sum(len(str(i)) for i in msgs.messages)

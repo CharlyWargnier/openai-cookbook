@@ -115,11 +115,14 @@ class CustomPromptTemplate(BaseChatPromptTemplate):
 class CustomOutputParser(AgentOutputParser):
     def parse(self, llm_output: str) -> Union[AgentAction, AgentFinish]:
         # Check if agent should finish
-        if "Final Answer:" in llm_output:
+        final_phrases = ["Final Answer:", "The final answer is"]
+        match_phrase = next((phrase for phrase in final_phrases if phrase in llm_output), None)
+    
+        if match_phrase:
             return AgentFinish(
                 # Return values is generally always a dictionary with a single `output` key
                 # It is not recommended to try anything else at the moment :)
-                return_values={"output": llm_output.split("Final Answer:")[-1].strip()},
+                return_values={"output": llm_output.split(match_phrase)[-1].strip()},
                 log=llm_output,
             )
         # Parse out the action and action input
