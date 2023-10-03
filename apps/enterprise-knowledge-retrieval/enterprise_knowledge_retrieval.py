@@ -40,21 +40,6 @@ except:
         host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=False
     )
 
-# Authenticate OpenAI
-if not openai.api_key and "OPENAI_API_KEY" not in os.environ:
-    warning = st.sidebar.info(
-        """
-    No API key provided. You can set your API key in code using 
-    'openai.api_key = <API-KEY>', or you can set the environment 
-    variable `OPENAI_API_KEY=<API-KEY>`. Else, please set your API key below.
-    """
-    )
-    openai.api_key = st.sidebar.text_input("OpenAI API key", type="password")
-    if openai.api_key:
-        warning.empty()
-    else:
-        st.stop()
-
 
 @st.cache_data
 def load_article():
